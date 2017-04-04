@@ -105,7 +105,36 @@ public class ViewLyrics {
         result.setTitle(title);
         result.setArtist(artist);
         result.setLRC(url.endsWith("lrc"));
-        result.setText(Net.getUrlAsString(url).replaceAll("(\\[(?=.[a-z]).+\\]|<.+?>|www.*[\\s])", "").replaceAll("[\n\r]", " ").replaceAll("\\[", "\n\\["));
+
+        //get all the lines
+        String[] lines = Net.getUrlAsString(url).replaceAll("(\\[(?=.[a-z]).+\\]|<.+?>|www.*[\\s])", "").replaceAll("[\n]\\[(.*?)\\]+[\\s]","").split("\n");
+        String output = "";
+
+        //scan every line
+        //for example, if we get line like this in lyrics
+        //[04.34][04.59][06.34][08.56] Le lo le re lo
+        //previously it used to convert in this form
+        // [04.34]
+        // [04.59]
+        // [06.34]
+        // [08.56] Le lo le re lo
+        //missing lyrics in those 3 times
+        //we want output in this form
+        // [04.34] Le lo le re lo
+        // [04.59] Le lo le re lo
+        // [06.34] Le lo le re lo
+        // [08.56] Le lo le re lo
+        // I think code is self explanatory
+        for(String line : lines){
+            String actual_lyric_part = line.replaceAll("[^A-Za-z\\s]","");
+            String newLine = line.replaceAll("\\]\\[","\\]"+actual_lyric_part+"\n\\[");
+            output = output.concat(newLine);
+        }
+
+        result.setText(output.replaceAll("\\[", "\n\\[ "));
+
+        //result.setText(Net.getUrlAsString(url).replaceAll("(\\[(?=.[a-z]).+\\]|<.+?>|www.*[\\s])", "").replaceAll("[\n\r]", " ").replaceAll("\\[", "\n\\["));
+
         result.setSource(clientUserAgent);
 
         return result;
